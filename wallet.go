@@ -11,8 +11,7 @@ import (
 	"golang.org/x/crypto/ripemd160"
 )
 
-const version = byte(0x00)
-const walletFile = "wallet.dat"
+const verzion = byte(0x00)
 const addressChecksumLen = 4
 
 type Wallet struct {
@@ -43,7 +42,7 @@ func newKeyPair() (ecdsa.PrivateKey, []byte) {
 func (w Wallet) GetAddress() []byte {
 	pubKeyHash := HashPubKey(w.PublicKey)
 
-	versionedPayload := append([]byte{version}, pubKeyHash...)
+	versionedPayload := append([]byte{verzion}, pubKeyHash...)
 	checksum := checksum(versionedPayload)
 
 	fullPayload := append(versionedPayload, checksum...)
@@ -68,9 +67,9 @@ func HashPubKey(pubKey []byte) []byte {
 func ValidateAddress(address string) bool {
 	pubKeyHash := Base58Decode([]byte(address))
 	actualChecksum := pubKeyHash[len(pubKeyHash)-addressChecksumLen:]
-	version := pubKeyHash[0]
+	verzion := pubKeyHash[0]
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-addressChecksumLen]
-	targetChecksum := checksum(append([]byte{version}, pubKeyHash...))
+	targetChecksum := checksum(append([]byte{verzion}, pubKeyHash...))
 
 	return bytes.Equal(actualChecksum, targetChecksum)
 }
