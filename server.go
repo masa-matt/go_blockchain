@@ -18,6 +18,8 @@ const commandLength = 12
 var nodeAddress string
 var miningAddress string
 var knownNodes = []string{"localhost:3000"}
+var blocksInTransit = [][]byte{}
+var mempool = make(map[string]Transaction)
 
 type version struct {
 	Version    int
@@ -64,6 +66,10 @@ func requestBlocks() {
 	for _, node := range knownNodes {
 		sendGetBlocks(node)
 	}
+}
+
+type addr struct {
+	AddrList []string
 }
 
 func sendAddr(address string) {
@@ -146,6 +152,18 @@ func handleConnection(conn net.Conn, bc *Blockchain) {
 	fmt.Printf("Received %s command\n", command)
 
 	switch command {
+	case "addr":
+		handleAddr(request)
+	case "block":
+		handleBlock(request, bc)
+	case "inv":
+		handleInv(request, bc)
+	case "getblocks":
+		handleGetBlocks(request, bc)
+	case "getdata":
+		handleGetData(request, bc)
+	case "tx":
+		handleTx(request, bc)
 	case "version":
 		handleVersion(request, bc)
 	default:
@@ -201,6 +219,16 @@ type getblocks struct {
 }
 
 func handleGetBlocks(request []byte, bc *Blockchain) {
+	var buff bytes.Buffer
+	var payload version
+
+	buff.Write(request[commandLength:])
+	dec := gob.NewDecoder(&buff)
+	err := dec.Decode(&payload)
+	if err != nil {
+		log.Panic(err)
+	}
+
 	blocks := bc.GetBlockHashes()
 	sendInv(payload.AddrFrom, "block", blocks)
 }
@@ -222,17 +250,17 @@ func handleInv(request []byte, bc *Blockchain) {
 		log.Panic(err)
 	}
 
-	fmt.Println("Received inventory with %d %s\n", len(payload.Items), payload.Type)
+	fmt.Printf("Received inventory with %d %s\n", len(payload.Items), payload.Type)
 
 	if payload.Type == "block" {
-		blocksInTransit := payload.Items
+		blocksInTransit = payload.Items
 
 		blockHash := payload.Items[0]
 		sendGetData(payload.AddrFrom, "block", blockHash)
 
 		newInTransit := [][]byte{}
 		for _, b := range blocksInTransit {
-			if bytes.Compare(b, blockHash) != 0 {
+			if !bytes.Equal(b, blockHash) {
 				newInTransit = append(newInTransit, b)
 			}
 		}
@@ -256,7 +284,7 @@ type getdata struct {
 
 func handleGetData(request []byte, bc *Blockchain) {
 	var buff bytes.Buffer
-	var payload getblocks
+	var payload getdata
 
 	buff.Write(request[commandLength:])
 	dec := gob.NewDecoder(&buff)
@@ -267,6 +295,9 @@ func handleGetData(request []byte, bc *Blockchain) {
 
 	if payload.Type == "block" {
 		block, err := bc.GetBlock([]byte(payload.ID))
+		if err != nil {
+			return
+		}
 
 		sendBlock(payload.AddrFrom, &block)
 	}
@@ -307,11 +338,11 @@ func handleBlock(request []byte, bc *Blockchain) {
 	fmt.Println("Received a new block!")
 	bc.AddBlock(block)
 
-	fmt.Println("Added block %x\n", block.Hash)
+	fmt.Printf("Added block %x\n", block.Hash)
 
 	if len(blocksInTransit) > 0 {
 		blockHash := blocksInTransit[0]
-		sendGetData(payload.AddrFrom, "block", block.Hash)
+		sendGetData(payload.AddrFrom, "block", blockHash)
 
 		blocksInTransit = blocksInTransit[1:]
 	} else {
@@ -354,7 +385,7 @@ func handleTx(request []byte, bc *Blockchain) {
 				}
 			}
 
-			if len(tx) == 0 {
+			if len(txs) == 0 {
 				fmt.Println("All transactions are invalid! Waiting for new ones...")
 				return
 			}
@@ -407,7 +438,7 @@ func StartServer(nodeID, minerAddress string) {
 		if err != nil {
 			log.Panic(err)
 		}
-		go handleConnection(conn)
+		go handleConnection(conn, bc)
 	}
 }
 
