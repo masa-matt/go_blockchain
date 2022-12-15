@@ -1,4 +1,4 @@
-module github.com/masa-matt/go_bockchain
+module github.com/masa-matt/go_blockchain
 
 go 1.19
 
