@@ -92,7 +92,7 @@ func sendBlock(addr string, b *Block) {
 func sendData(addr string, data []byte) {
 	conn, err := net.Dial(protocol, addr)
 	if err != nil {
-		fmt.Printf("%s is not available\n", addr)
+		log.Printf("%s is not available\n", addr)
 		var updatedNodes []string
 
 		for _, node := range knownNodes {
@@ -149,7 +149,7 @@ func handleConnection(conn net.Conn, bc *Blockchain) {
 		log.Panic(err)
 	}
 	command := bytesToCommand(request[:commandLength])
-	fmt.Printf("Received %s command\n", command)
+	log.Printf("Received %s command\n", command)
 
 	switch command {
 	case "addr":
@@ -167,7 +167,7 @@ func handleConnection(conn net.Conn, bc *Blockchain) {
 	case "version":
 		handleVersion(request, bc)
 	default:
-		fmt.Println("Unknown command!")
+		log.Println("Unknown command!")
 	}
 
 	conn.Close()
@@ -210,7 +210,7 @@ func handleAddr(request []byte) {
 	}
 
 	knownNodes = append(knownNodes, payload.AddrList...)
-	fmt.Printf("There are %d known nodes now!\n", len(knownNodes))
+	log.Printf("There are %d known nodes now!\n", len(knownNodes))
 	requestBlocks()
 }
 
@@ -250,7 +250,7 @@ func handleInv(request []byte, bc *Blockchain) {
 		log.Panic(err)
 	}
 
-	fmt.Printf("Received inventory with %d %s\n", len(payload.Items), payload.Type)
+	log.Printf("Received inventory with %d %s\n", len(payload.Items), payload.Type)
 
 	if payload.Type == "block" {
 		blocksInTransit = payload.Items
@@ -335,10 +335,10 @@ func handleBlock(request []byte, bc *Blockchain) {
 	block := DeserializeBlock(blockData)
 
 	// TODO: Instead of trusting unconditionally, we should validate every incoming block before adding it to the blockchain.
-	fmt.Println("Received a new block!")
+	log.Println("Received a new block!")
 	bc.AddBlock(block)
 
-	fmt.Printf("Added block %x\n", block.Hash)
+	log.Printf("Added block %x\n", block.Hash)
 
 	if len(blocksInTransit) > 0 {
 		blockHash := blocksInTransit[0]
@@ -386,7 +386,7 @@ func handleTx(request []byte, bc *Blockchain) {
 			}
 
 			if len(txs) == 0 {
-				fmt.Println("All transactions are invalid! Waiting for new ones...")
+				log.Println("All transactions are invalid! Waiting for new ones...")
 				return
 			}
 
@@ -398,7 +398,7 @@ func handleTx(request []byte, bc *Blockchain) {
 			// TODO: Again, UTXOSet.Update should be used instead of UTXOSet.Reindex
 			UTXOSet.Reindex()
 
-			fmt.Println("New block is mined!")
+			log.Println("New block is mined!")
 
 			for _, tx := range txs {
 				txID := hex.EncodeToString(tx.ID)

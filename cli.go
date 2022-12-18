@@ -150,14 +150,14 @@ func (cli *CLI) reindexUTXO(nodeID string) {
 	UTXOSet.Reindex()
 
 	count := UTXOSet.CountTransactions()
-	fmt.Printf("Done! There are %d transactions in the UTXO set.\n", count)
+	log.Printf("Done! There are %d transactions in the UTXO set.\n", count)
 }
 
 func (cli *CLI) startNode(nodeID, minerAddress string) {
-	fmt.Printf("Starting node %s\n", nodeID)
+	log.Printf("Starting node %s\n", nodeID)
 	if len(minerAddress) > 0 {
 		if ValidateAddress(minerAddress) {
-			fmt.Println("Mining is on. Address to receive rewards: ", minerAddress)
+			log.Println("Mining is on. Address to receive rewards: ", minerAddress)
 		} else {
 			log.Panic("Wrong miner address!")
 		}
@@ -170,7 +170,7 @@ func (cli *CLI) Run() {
 
 	nodeID := os.Getenv("NODE_ID")
 	if nodeID == "" {
-		fmt.Println("NODE_ID env. var is not set!")
+		log.Println("NODE_ID env. var is not set!")
 		os.Exit(1)
 	}
 
