@@ -14,7 +14,7 @@ $ export NODE_ID=3000
 ```shell
 $ go_blockchain createwallet
 ```
-  - Use created address.
+  - Use the created address.
 ```
 $ go_blockchain createblockchain -address CENTREAL_NODE
 ```
@@ -77,7 +77,11 @@ $ export NODE_ID=3002
 ```shell
 $ cp blockchain_genesis.db blockchain_3002.db
 ```
-  - Start the node.
+  - Create new wallet.
+```shell
+$ go_blockchain createwallet
+```
+  - Start the node with the created address.
 ```shell
 $ go_blockchain startnode -miner MINER_WALLET
 ```
