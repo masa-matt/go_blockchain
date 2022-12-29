@@ -1,12 +1,14 @@
 package main
 
-import "log"
+import (
+	"log"
 
-// https://github.com/Jeiwan/blockchain_go
+	"github.com/masa-matt/go_blockchain/p2p"
+)
 
 func main() {
 	log.SetFlags(log.Lmicroseconds)
 
-	cli := CLI{}
+	cli := p2p.CLI{}
 	cli.Run()
 }
