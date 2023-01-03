@@ -1,5 +1,7 @@
-# Reference
-[https://github.com/Jeiwan/blockchain_go](https://github.com/Jeiwan/blockchain_go)
+# Overview
+This repository is intended to help myself understand how blockchain works by writing it from scratch.
+The basis for running the following scenario from scratch was taken from [Jeiwan/blockchain_go](https://github.com/Jeiwan/blockchain_go).
+From there, I will further deepen each technique one by one.
 
 # Scenario
 
