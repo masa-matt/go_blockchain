@@ -255,7 +255,6 @@ func NewUTXOTransaction(wallet *w.Wallet, to string, amount int, UTXOSet *UTXOSe
 		}
 
 		for _, out := range outs {
-			log.Printf("out index: %d", out)
 			input := TXInput{txID, out, nil, wallet.PublicKey}
 			inputs = append(inputs, input)
 		}
